@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://cdn.jsdelivr.net/gh/naptha/tesseract.js@v1.0.14/dist/tesseract.min.js"></script>
+<title>Tesseract</title>
+</head>
+<body>
+
+  <input type="text" id="url" placeholder="Image URL" />
+  <input type="button" id="go_button" value="Run" />
+  <div id="ocr_results"> </div>
+  <div id="ocr_status"> </div>
+
+  <div id="results">
+    <div>
+      <video autoplay=""></video>
+      <button id="getUserMediaButton">Get User Media</button>
+    </div>
+    <div>
+      <canvas id="grabFrameCanvas" width="264" height="198"></canvas>
+      <button id="grabFrameButton">Grab Frame</button>
+    </div>
+    <div>
+      <canvas id="takePhotoCanvas" width="264" height="198"></canvas>
+      <button id="takePhotoButton">Take Photo</button>
+    </div>
+  </div>
+
+  <script>
+
+
+    function runOCR(url) {
+      Tesseract.recognize(url)
+        .then(function (result) {
+          document.getElementById("ocr_results")
+            .innerText = result.text;
+        }).progress(function (result) {
+          document.getElementById("ocr_status")
+            .innerText = result["status"] + " (" +
+            (result["progress"] * 100) + "%)";
+        });
+    }
+
+    document.getElementById("go_button")
+      .addEventListener("click", function (e) {
+        var url = document.getElementById("url").value;
+        // console.log(url)
+        // runOCR(url);
+        takePhoto()
+      });
+
+  // function takePhoto() {
+  //   ImageCapture.takePhoto()
+  //     .then(function (blob) {
+  //       console.log('Took photo:', blob);
+  //       img.classList.remove('hidden');
+  //       img.src = URL.createObjectURL(blob);
+  //       runOCR(img);
+  //     })
+  //     .catch(function (error) {
+  //       console.log('takePhoto() error: ', error);
+  //     });
+  // }
+
+  var imageCapture;
+
+    function onGetUserMediaButtonClick() {
+      var onSuccess = function (stream) {
+        alert('Success!',stream);
+      }
+
+      var onError = function (error) {
+        alert(error);
+      }
+
+      navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia ||
+        navigator.msGetUserMedia;
+
+      if (navigator.getUserMedia) {
+        navigator.getUserMedia({ video: false, audio: true }, onSuccess, onError)
+          .then(mediaStream => {
+          document.querySelector('video').srcObject = mediaStream;
+
+          const track = mediaStream.getVideoTracks()[0];
+          imageCapture = new ImageCapture(track);
+        })
+        .catch(error => ChromeSamples.log(error));
+      } else {
+        onError();
+      }
+
+
+      // navigator.mediaDevices.getUserMedia({ video: true })
+      //   .then(mediaStream => {
+      //     document.querySelector('video').srcObject = mediaStream;
+
+      //     const track = mediaStream.getVideoTracks()[0];
+      //     imageCapture = new ImageCapture(track);
+      //   })
+      //   .catch(error => ChromeSamples.log(error));
+    }
+
+
+
+    function onGrabFrameButtonClick() {
+      imageCapture.grabFrame()
+        .then(imageBitmap => {
+          const canvas = document.querySelector('#grabFrameCanvas');
+          drawCanvas(canvas, imageBitmap);
+        })
+        .catch(error => ChromeSamples.log(error));
+    }
+
+    function onTakePhotoButtonClick() {
+      console.log('hi')
+      imageCapture.takePhoto()
+        .then(blob => { 
+          createImageBitmap(blob)
+            console.log(blob)
+            return blob
+          })
+        .then(imageBitmap => {
+          console.log(imageBitmap)
+          runOCR(imageBitmap)
+          const canvas = document.querySelector('#takePhotoCanvas');
+          drawCanvas(canvas, imageBitmap);
+        })
+        .catch(error => ChromeSamples.log(error));
+    }
+
+    /* Utils */
+
+    function drawCanvas(canvas, img) {
+      canvas.width = getComputedStyle(canvas).width.split('px')[0];
+      canvas.height = getComputedStyle(canvas).height.split('px')[0];
+      let ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+      let x = (canvas.width - img.width * ratio) / 2;
+      let y = (canvas.height - img.height * ratio) / 2;
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+      canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height,
+        x, y, img.width * ratio, img.height * ratio);
+    }
+
+    document.querySelector('video').addEventListener('play', function () {
+      document.querySelector('#grabFrameButton').disabled = false;
+      document.querySelector('#takePhotoButton').disabled = false;
+    });
+
+
+
+
+
+    document.querySelector('#getUserMediaButton').addEventListener('click', onGetUserMediaButtonClick);
+    document.querySelector('#grabFrameButton').addEventListener('click', onGrabFrameButtonClick);
+    document.querySelector('#takePhotoButton').addEventListener('click', onTakePhotoButtonClick);
+
+
+
+  </script>
+  
+</body>
+</html>
