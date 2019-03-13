@@ -65,39 +65,39 @@
   var imageCapture;
 
     function onGetUserMediaButtonClick() {
-      var onSuccess = function (stream) {
-        alert('Success!',stream);
-      }
+      // var onSuccess = function (stream) {
+      //   alert('Success!',stream);
+      // }
 
-      var onError = function (error) {
-        alert(error);
-      }
+      // var onError = function (error) {
+      //   alert(error);
+      // }
 
-      navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia ||
-        navigator.msGetUserMedia;
+      // navigator.getUserMedia = navigator.mediaDevices || navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia ||
+      //   navigator.msGetUserMedia;
 
-      if (navigator.getUserMedia) {
-        navigator.getUserMedia({ video: true, audio: true }, onSuccess, onError)
-          .then(mediaStream => {
-          document.querySelector('video').srcObject = mediaStream;
-
-          const track = mediaStream.getVideoTracks()[0];
-          imageCapture = new ImageCapture(track);
-        })
-        .catch(error => ChromeSamples.log(error));
-      } else {
-        onError();
-      }
-
-
-      // navigator.mediaDevices.getUserMedia({ video: true })
-      //   .then(mediaStream => {
+      // if (navigator.getUserMedia) {
+      //   navigator.getUserMedia({ video: true, audio: true }, onSuccess, onError)
+      //     .then(mediaStream => {
       //     document.querySelector('video').srcObject = mediaStream;
 
       //     const track = mediaStream.getVideoTracks()[0];
       //     imageCapture = new ImageCapture(track);
       //   })
       //   .catch(error => ChromeSamples.log(error));
+      // } else {
+      //   onError();
+      // }
+
+
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(mediaStream => {
+          document.querySelector('video').srcObject = mediaStream;
+
+          const track = mediaStream.getVideoTracks()[0];
+          imageCapture = new ImageCapture(track);
+        })
+        .catch(error => ChromeSamples.log(error));
     }
 
 
