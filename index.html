@@ -77,7 +77,7 @@
         navigator.msGetUserMedia;
 
       if (navigator.getUserMedia) {
-        navigator.getUserMedia({ video: false, audio: true }, onSuccess, onError)
+        navigator.getUserMedia({ video: true, audio: true }, onSuccess, onError)
           .then(mediaStream => {
           document.querySelector('video').srcObject = mediaStream;
 
@@ -110,7 +110,7 @@
         })
         .catch(error => ChromeSamples.log(error));
     }
-    
+
 
     function onTakePhotoButtonClick() {
       console.log('hi')
